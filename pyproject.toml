@@ -1,0 +1,32 @@
+[tool.isort]
+line_length = 120
+multi_line_output = 3
+include_trailing_comma = true
+force_grid_wrap = 0
+ensure_newline_before_comments = true
+lines_after_imports = 2
+use_parentheses = true
+known_django = "django"
+sections = "FUTURE,STDLIB,DJANGO,THIRDPARTY,FIRSTPARTY,LOCALFOLDER"
+
+[tool.poetry]
+name = "money-transfer"
+version = "0.1.0"
+description = ""
+authors = ["Maria maria.biruk1@gmail.com"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.12"
+django = "^5.1.1"
+pre-commit = "^3.8.0"
+flake8 = "^7.1.1"
+isort = "^5.13.2"
+black = "^24.8.0"
+python-dotenv = "^1.0.1"
+psycopg2 = "^2.9.9"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
