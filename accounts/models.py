@@ -8,7 +8,6 @@ from accounts.constants import TIN_MAX_LENGTH, TIN_MIN_LENGTH, ZERO_DECIMAL
 class User(AbstractUser):
     first_name = models.CharField(max_length=150)
     last_name = models.CharField(max_length=150)
-    email = models.EmailField(unique=True)
 
     # taxpayer identification number
     tin = models.CharField(
@@ -22,11 +21,11 @@ class User(AbstractUser):
             ),
         ],
     )
-    account = models.DecimalField(
+    balance = models.DecimalField(
         max_digits=12,
         decimal_places=2,
         default=ZERO_DECIMAL,
         validators=[MinValueValidator(ZERO_DECIMAL)],
     )
 
-    REQUIRED_FIELDS = ["first_name", "last_name"]
+    REQUIRED_FIELDS = ["first_name", "last_name", "tin"]
