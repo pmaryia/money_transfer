@@ -25,8 +25,13 @@ isort = "^5.13.2"
 black = "^24.8.0"
 python-dotenv = "^1.0.1"
 psycopg2 = "^2.9.9"
-
+pytest-django = "^4.9.0"
+model-bakery = "^1.19.5"
 
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "money_transfer.settings"
+python_files = "*_test.py"

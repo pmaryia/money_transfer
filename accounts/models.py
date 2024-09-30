@@ -1,8 +1,9 @@
 from django.contrib.auth.models import AbstractUser
-from django.core.validators import MinLengthValidator, MinValueValidator, RegexValidator
+from django.core.validators import MinValueValidator
 from django.db import models
 
-from accounts.constants import TIN_MAX_LENGTH, TIN_MIN_LENGTH, ZERO_DECIMAL
+from accounts.constants import TIN_MAX_LENGTH, ZERO_DECIMAL
+from accounts.validators import validate_tin
 
 
 class User(AbstractUser):
@@ -11,15 +12,7 @@ class User(AbstractUser):
 
     # taxpayer identification number
     tin = models.CharField(
-        max_length=TIN_MAX_LENGTH,
-        unique=True,
-        validators=[
-            MinLengthValidator(TIN_MIN_LENGTH),
-            RegexValidator(
-                regex=r"^\d+$",
-                message="Taxpayer Identification Number must contain only digits",
-            ),
-        ],
+        max_length=TIN_MAX_LENGTH, unique=True, validators=[validate_tin]
     )
     balance = models.DecimalField(
         max_digits=12,

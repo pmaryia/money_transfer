@@ -2,6 +2,7 @@ from django import forms
 
 from accounts.constants import MIN_TRANSFER_AMOUNT, TIN_MAX_LENGTH, TIN_MIN_LENGTH
 from accounts.models import User
+from accounts.validators import validate_tin
 
 
 class TransferForm(forms.Form):
@@ -25,14 +26,16 @@ class TransferForm(forms.Form):
                 f"TIN must be passed through a comma and contain {TIN_MIN_LENGTH} or {TIN_MAX_LENGTH} digits"
             )
 
-        for tin in tins:
-            if not tin.isdigit() or not (len(tin) in [TIN_MIN_LENGTH, TIN_MAX_LENGTH]):
-                raise forms.ValidationError(
-                    f"TIN must be passed through a comma and contain {TIN_MIN_LENGTH} or {TIN_MAX_LENGTH} digits"
-                )
+        map(validate_tin, tins)
 
-        if len(tins) != len(set(tins)):
+        tins_count = len(tins)
+        if tins_count != len(set(tins)):
             raise forms.ValidationError("Tin cannot be repeated")
+
+        if tins_count > TIN_MAX_LENGTH:
+            raise forms.ValidationError(
+                f"Money cannot be sent to more than {TIN_MAX_LENGTH} recipients"
+            )
 
         return tins
 

@@ -6,7 +6,7 @@ from django.db import transaction
 from django.db.models import F
 from django.shortcuts import get_object_or_404
 
-from accounts.constants import ZERO_DECIMAL
+from accounts.constants import MAX_TRANSFER_AMOUNT_PER_RECIPIENT, ZERO_DECIMAL
 from accounts.models import User
 
 
@@ -18,7 +18,9 @@ class Service:
         self.amount_per_recipient = self.calculate_amount_per_recipient()
 
     def calculate_amount_per_recipient(self) -> decimal.Decimal:
-        return (self.amount / len(self.recipients)).quantize(ZERO_DECIMAL)
+        return (self.amount / len(self.recipients)).quantize(
+            ZERO_DECIMAL, rounding=decimal.ROUND_DOWN
+        )
 
     def _validate_transfer_amount(self) -> None:
         if self.sender.balance < self.amount:
@@ -28,13 +30,18 @@ class Service:
         if self.amount_per_recipient == ZERO_DECIMAL:
             raise ValidationError("The amount is too small")
 
+        if self.amount_per_recipient > MAX_TRANSFER_AMOUNT_PER_RECIPIENT:
+            raise ValidationError("The amount per recipient is too big")
+
     def _validate_recipients(self) -> None:
         accounts = User.objects.filter(tin__in=self.recipients)
         if accounts.count() != len(self.recipients):
             nonexistent_tins = set(self.recipients) - set(
                 accounts.values_list("tin", flat=True)
             )
-            raise ValidationError(f"Tin not found: {', '.join(nonexistent_tins)}")
+            raise ValidationError(
+                f"Tin not found: {', '.join(sorted(nonexistent_tins))}"
+            )
 
     def _validate_transfer(self) -> None:
         self._validate_transfer_amount()
