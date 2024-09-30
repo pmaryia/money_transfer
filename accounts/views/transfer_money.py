@@ -2,13 +2,13 @@ from django.core.exceptions import ValidationError
 from django.urls import reverse_lazy
 from django.views.generic import FormView, TemplateView
 
-from accounts.forms import TransferForm
-from core.services.transfer import Service as TransferService
+from accounts.forms import TransferMoneyForm
+from core.services.transfer_money import Service as TransferService
 
 
 class TransferMoneyView(FormView):
     template_name = "transfer_money.html"
-    form_class = TransferForm
+    form_class = TransferMoneyForm
     success_url = reverse_lazy("transfer-success")
 
     def form_valid(self, form):
@@ -26,5 +26,5 @@ class TransferMoneyView(FormView):
         return super().form_valid(form)
 
 
-class TransferSuccessView(TemplateView):
-    template_name = "transfer_success.html"
+class TransferMoneySuccessView(TemplateView):
+    template_name = "transfer_money_success.html"

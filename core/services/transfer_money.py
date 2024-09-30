@@ -4,7 +4,6 @@ from typing import List
 from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.db.models import F
-from django.shortcuts import get_object_or_404
 
 from accounts.constants import MAX_TRANSFER_AMOUNT_PER_RECIPIENT, ZERO_DECIMAL
 from accounts.models import User
@@ -56,6 +55,10 @@ class Service:
         list(accounts)  # cause evaluation, locking the selected rows
         accounts.update(balance=F("balance") + self.amount_per_recipient)
 
-        sender = get_object_or_404(User.objects.select_for_update(), pk=self.sender.pk)
+        try:
+            sender = User.objects.select_for_update().get(pk=self.sender.pk)
+        except User.DoesNotExist:
+            raise ValidationError("Sender does not exist")
+
         sender.balance = F("balance") - self.amount_per_recipient * accounts.count()
         sender.save()
