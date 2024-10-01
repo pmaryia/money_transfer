@@ -84,6 +84,36 @@ def test_not_redirect_to_success_page_if_validation_error_occurred_while_transfe
 
 
 @pytest.mark.django_db
+def test_not_redirect_to_success_page_if_unexpected_error_occurred_while_transfer(
+    client, make_users
+):
+    sender, _ = make_users(recipients_count=1)
+
+    client.login(username=sender.username, password=sender.tin)
+
+    def fake_transfer():
+        raise Exception("Unexpected error")
+
+    with patch.object(
+        TransferMoneyService, "transfer", MagicMock(side_effect=fake_transfer)
+    ) as transfer_mock:
+        form_data = {
+            "sender": sender.pk,
+            "recipients": "2111111111",
+            "amount": Decimal("10"),
+        }
+        response = client.post(reverse("transfer"), form_data)
+
+        transfer_mock.assert_called_once()
+
+    assert response.status_code == 200
+    assert "transfer_money.html" in [t.name for t in response.templates]
+    assert response.context["form"].errors["__all__"] == [
+        "Unexpected error occurred. Please, try again"
+    ]
+
+
+@pytest.mark.django_db
 def test_redirect_to_login_page_if_user_is_not_authenticated(client):
     response = client.get(reverse("transfer"))
 
