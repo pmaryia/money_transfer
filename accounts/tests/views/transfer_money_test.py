@@ -11,11 +11,11 @@ import pytest
 def test_redirect_to_success_page_if_form_and_transfer_was_successful(
     mock_transfer, client, make_users
 ):
-    mock_transfer.return_value = None
-
     sender, recipients = make_users(recipients_count=3)
     tins = [recipient.tin for recipient in recipients]
     amount_to_transfer = Decimal("33.32")
+
+    client.login(username=sender.username, password=sender.tin)
 
     form_data = {
         "sender": sender.pk,
@@ -29,9 +29,11 @@ def test_redirect_to_success_page_if_form_and_transfer_was_successful(
 
 
 @pytest.mark.django_db
-def test_not_redirect_if_form_is_invalid(client, make_users):
+def test_not_redirect_to_success_page_if_form_is_invalid(client, make_users):
     sender, _ = make_users(recipients_count=0)
     sender_balance = sender.balance
+
+    client.login(username=sender.username, password=sender.tin)
 
     form_data = {
         "sender": sender.pk,
@@ -51,8 +53,12 @@ def test_not_redirect_if_form_is_invalid(client, make_users):
 
 
 @pytest.mark.django_db
-def test_not_redirect_if_validation_error_occurred_while_transfer(client, make_users):
+def test_not_redirect_to_success_page_if_validation_error_occurred_while_transfer(
+    client, make_users
+):
     sender, _ = make_users(recipients_count=0)
+
+    client.login(username=sender.username, password=sender.tin)
 
     form_data = {
         "sender": sender.pk,
@@ -64,3 +70,11 @@ def test_not_redirect_if_validation_error_occurred_while_transfer(client, make_u
     assert response.status_code == 200
     assert "transfer_money.html" in [t.name for t in response.templates]
     assert response.context["form"].errors["__all__"] == ["Tin not found: 1111111111"]
+
+
+@pytest.mark.django_db
+def test_redirect_to_login_page_if_user_is_not_authenticated(client):
+    response = client.get(reverse("transfer"))
+
+    assert response.status_code == 302
+    assert response.url == f"{reverse("login")}?next={reverse('transfer')}"

@@ -1,3 +1,4 @@
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.exceptions import ValidationError
 from django.urls import reverse_lazy
 from django.views.generic import FormView, TemplateView
@@ -6,10 +7,11 @@ from accounts.forms import TransferMoneyForm
 from core.services.transfer_money import Service as TransferService
 
 
-class TransferMoneyView(FormView):
+class TransferMoneyView(LoginRequiredMixin, FormView):
     template_name = "transfer_money.html"
     form_class = TransferMoneyForm
     success_url = reverse_lazy("transfer-success")
+    login_url = reverse_lazy("login")
 
     def form_valid(self, form):
         sender = form.cleaned_data["sender"]

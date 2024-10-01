@@ -1,6 +1,7 @@
 import random
 from decimal import Decimal
 
+from django.contrib.auth.hashers import make_password
 from django.test import Client
 
 import pytest
@@ -23,12 +24,22 @@ def generate_tin(number_of_digits=10):
 @pytest.fixture
 def make_users():
     def inner(sender_balance=Decimal("100"), recipients_count=1):
-        sender = baker.make("accounts.User", balance=sender_balance, tin=generate_tin())
+        tin = generate_tin()
+        sender = baker.make(
+            "accounts.User",
+            balance=sender_balance,
+            tin=tin,
+            password=make_password(tin),
+        )
 
         recipients = []
         for i in range(recipients_count):
+            tin = generate_tin()
             recipient = baker.make(
-                "accounts.User", balance=Decimal(str(i * 10)), tin=generate_tin()
+                "accounts.User",
+                balance=Decimal(str(i * 10)),
+                tin=tin,
+                password=make_password(tin),
             )
             recipients.append(recipient)
         return sender, recipients
