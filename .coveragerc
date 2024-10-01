@@ -5,3 +5,5 @@ omit =
     */admin/*
     manage.py
     */__init__.py
+    money_transfer/asgi.py
+    money_transfer/wsgi.py
