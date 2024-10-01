@@ -1,9 +1,12 @@
 from decimal import Decimal
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
+from django.core.exceptions import ValidationError
 from django.urls import reverse
 
 import pytest
+
+from core.services.transfer_money import Service as TransferMoneyService
 
 
 @pytest.mark.django_db
@@ -60,16 +63,24 @@ def test_not_redirect_to_success_page_if_validation_error_occurred_while_transfe
 
     client.login(username=sender.username, password=sender.tin)
 
-    form_data = {
-        "sender": sender.pk,
-        "recipients": "1111111111",
-        "amount": Decimal("10"),
-    }
-    response = client.post(reverse("transfer"), form_data)
+    def fake_transfer():
+        raise ValidationError("Tin not found: 2111111111")
+
+    with patch.object(
+        TransferMoneyService, "transfer", MagicMock(side_effect=fake_transfer)
+    ) as transfer_mock:
+        form_data = {
+            "sender": sender.pk,
+            "recipients": "2111111111",
+            "amount": Decimal("10"),
+        }
+        response = client.post(reverse("transfer"), form_data)
+
+        transfer_mock.assert_called_once()
 
     assert response.status_code == 200
     assert "transfer_money.html" in [t.name for t in response.templates]
-    assert response.context["form"].errors["__all__"] == ["Tin not found: 1111111111"]
+    assert response.context["form"].errors["__all__"] == ["Tin not found: 2111111111"]
 
 
 @pytest.mark.django_db
