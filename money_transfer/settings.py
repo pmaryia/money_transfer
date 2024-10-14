@@ -7,7 +7,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
-BASE_DIR = Path(__file__).resolve().parent.parent.parent
+BASE_DIR = Path(__file__).resolve().parent.parent
 
 
 # Quick-start development settings - unsuitable for production
@@ -19,8 +19,7 @@ SECRET_KEY = os.getenv("SECRET_KEY")
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv("DEBUG") == "True"
 
-ALLOWED_HOSTS = []
-
+ALLOWED_HOSTS = list(filter(None, os.getenv("ALLOWED_HOSTS").split(",")))
 
 # Application definition
 
@@ -127,3 +126,9 @@ AUTH_USER_MODEL = "accounts.User"
 APPEND_SLASH = True
 
 LOGIN_URL = "login"
+
+STATIC_ROOT = BASE_DIR / "static"
+
+CSRF_TRUSTED_ORIGINS = list(
+    filter(None, os.getenv("CSRF_TRUSTED_ORIGINS", "").split(","))
+)
